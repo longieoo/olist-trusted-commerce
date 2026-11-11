@@ -406,8 +406,8 @@
   },
   {
     "path": "README.md",
-    "bytes": 4676,
-    "sha256": "d96327039b154a602de45abb8e30feca1d16bce8dfd25cb4a1e2009e8fdc698e"
+    "bytes": 4793,
+    "sha256": "38515aae1f67c48e81260c72738921b6fff38a1356580525018ac8f4346c3cc3"
   },
   {
     "path": "requirements-dbt.in",

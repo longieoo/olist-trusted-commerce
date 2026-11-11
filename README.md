@@ -39,16 +39,17 @@ Requirements: Docker Desktop with Linux containers, PowerShell, and about 8 GiB 
 ```powershell
 ./scripts/final.ps1 setup
 ./scripts/final.ps1 demo-fixture
-./scripts/final.ps1 ui
 ```
 
-Open http://localhost:8510 and choose the fixture source if prompted. The fixture contains deliberately invalid rows so rejection and reconciliation are visible.
+This runs the small pipeline and publishes its fixture database. The fixture contains deliberately invalid rows to exercise rejection and reconciliation. The default dashboard reads the historical publication, created in the next step.
 
 For the historical dataset, follow [data setup](docs/DATA_SETUP.md), then run:
 
 ```powershell
 ./scripts/final.ps1 demo-real
 ```
+
+Open http://localhost:8510 to explore the historical dashboard.
 
 After both baseline publications exist:
 
