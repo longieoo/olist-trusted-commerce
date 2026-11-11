@@ -1,0 +1,28 @@
+# Opt-in local CDC lab; only this project's PostgreSQL is reconfigured.
+services:
+  postgres:
+    command: ["postgres", "-c", "wal_level=logical", "-c", "max_replication_slots=5", "-c", "max_wal_senders=5", "-c", "max_slot_wal_keep_size=512MB"]
+  connect:
+    image: quay.io/debezium/connect:3.2.4.Final
+    profiles: ["cdc"]
+    environment:
+      BOOTSTRAP_SERVERS: kafka:9092
+      GROUP_ID: olist-cdc-connect
+      CONFIG_STORAGE_TOPIC: olist-connect-config
+      OFFSET_STORAGE_TOPIC: olist-connect-offset
+      STATUS_STORAGE_TOPIC: olist-connect-status
+      CONFIG_STORAGE_REPLICATION_FACTOR: 1
+      OFFSET_STORAGE_REPLICATION_FACTOR: 1
+      STATUS_STORAGE_REPLICATION_FACTOR: 1
+      KEY_CONVERTER_SCHEMAS_ENABLE: "false"
+      VALUE_CONVERTER_SCHEMAS_ENABLE: "false"
+      HEAP_OPTS: -Xms128m -Xmx512m
+    mem_limit: 1g
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://localhost:8083/connectors"]
+      interval: 5s
+      timeout: 3s
+      retries: 30
+    depends_on:
+      postgres: {condition: service_healthy}
+      kafka: {condition: service_healthy}

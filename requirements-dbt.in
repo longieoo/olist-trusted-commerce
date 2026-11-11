@@ -1,0 +1,6 @@
+# Install in a separate venv from Streamlit / Snowflake extras.
+dbt-core==1.9.2
+dbt-adapters==1.10.4
+dbt-common==1.15.0
+dbt-duckdb==1.9.6
+duckdb==1.2.2

@@ -1,0 +1,121 @@
+name: olist-final
+x-runtime: &runtime
+  image: olist-final-runtime:2.0.0
+  build:
+    context: .
+    dockerfile: infra/Dockerfile
+  env_file: .env
+  environment:
+    PYTHONPATH: /app/src:/opt/spark/python:/opt/spark/python/lib/py4j-0.10.9.7-src.zip
+  volumes:
+    - .:/app
+    - checkpoints:/checkpoints
+  working_dir: /app
+  mem_limit: 3g
+  cpus: 2
+services:
+  dbt-check:
+    <<: *runtime
+    image: olist-final-dbt:1.9.6
+    build:
+      context: .
+      dockerfile: infra/Dockerfile.dbt
+    profiles: ["quality"]
+    entrypoint: ["python3", "scripts/verify_dbt_local.py"]
+  dashboard:
+    <<: *runtime
+    profiles: ["ui"]
+    entrypoint: ["python3", "-m", "streamlit", "run", "app/dashboard.py", "--server.address=0.0.0.0", "--server.port=8501", "--browser.gatherUsageStats=false"]
+    ports: ["127.0.0.1:8510:8501"]
+    mem_limit: 1g
+  postgres:
+    image: postgres:16.10
+    env_file: .env
+    ports: ["127.0.0.1:55432:5432"]
+    volumes: ["pgdata:/var/lib/postgresql/data"]
+    mem_limit: 512m
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+  minio:
+    image: minio/minio:RELEASE.2025-09-07T16-13-09Z
+    command: server /data --console-address :9001
+    env_file: .env
+    ports: ["127.0.0.1:${MINIO_API_PORT:-9000}:9000", "127.0.0.1:${MINIO_CONSOLE_PORT:-9001}:9001"]
+    volumes: ["miniodata:/data"]
+    mem_limit: 512m
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/ready"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+  job:
+    <<: *runtime
+    profiles: ["jobs"]
+    depends_on:
+      postgres: {condition: service_healthy}
+      minio: {condition: service_healthy}
+  kafka:
+    image: apache/kafka:3.9.1
+    profiles: ["stream"]
+    ports: ["127.0.0.1:19092:19092"]
+    environment:
+      KAFKA_NODE_ID: 1
+      KAFKA_PROCESS_ROLES: broker,controller
+      KAFKA_LISTENERS: INTERNAL://:9092,EXTERNAL://:19092,CONTROLLER://:9093
+      KAFKA_ADVERTISED_LISTENERS: INTERNAL://kafka:9092,EXTERNAL://localhost:19092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: INTERNAL:PLAINTEXT,EXTERNAL:PLAINTEXT,CONTROLLER:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: INTERNAL
+      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@kafka:9093
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_LOG_DIRS: /var/lib/kafka/data
+      KAFKA_HEAP_OPTS: -Xms256m -Xmx512m
+      CLUSTER_ID: MkU3OEVBNTcwNTJENDM2Qk
+    volumes: ["kafkadata:/var/lib/kafka/data"]
+    mem_limit: 1g
+    healthcheck:
+      test: ["CMD-SHELL", "/opt/kafka/bin/kafka-topics.sh --bootstrap-server localhost:9092 --list >/dev/null"]
+      interval: 10s
+      timeout: 10s
+      retries: 20
+  stream:
+    <<: *runtime
+    profiles: ["stream"]
+    command: ["stream", "--session", "demo", "--continuous"]
+    restart: unless-stopped
+    depends_on:
+      minio: {condition: service_healthy}
+      kafka: {condition: service_healthy}
+  airflow:
+    image: apache/airflow:2.10.5-python3.11
+    profiles: ["orchestration"]
+    env_file: .env
+    environment:
+      AIRFLOW__CORE__EXECUTOR: SequentialExecutor
+      AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: sqlite:////opt/airflow/airflow.db
+      AIRFLOW__CORE__LOAD_EXAMPLES: "false"
+    command: standalone
+    ports: ["127.0.0.1:8080:8080"]
+    volumes: ["airflowdata:/opt/airflow", "./dags:/opt/airflow/dags:ro"]
+    mem_limit: 1536m
+    depends_on:
+      postgres: {condition: service_healthy}
+  pipeline-worker:
+    <<: *runtime
+    profiles: ["orchestration"]
+    command: ["worker"]
+    restart: unless-stopped
+    depends_on:
+      postgres: {condition: service_healthy}
+      minio: {condition: service_healthy}
+volumes:
+  pgdata:
+  miniodata:
+  kafkadata:
+  checkpoints:
+  airflowdata:

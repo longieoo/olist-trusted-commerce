@@ -1,0 +1,12 @@
+{
+  "status": "passed",
+  "dataset_version": "3320b070fe8e39d7590badc3ac4e74003f329db80d9c9d426543fe6c80c79c92",
+  "generation": "a77dfc0871f16b95f04ecf22",
+  "orders_checked": 98059,
+  "source_backed_rows": {
+    "fact_order_items": 111049,
+    "fact_payments": 102453
+  },
+  "per_order_mismatches": 0,
+  "scope": "Raw CSV value membership for accepted items/payments; independent Decimal per-order sums. Does not independently validate quarantine selection."
+}

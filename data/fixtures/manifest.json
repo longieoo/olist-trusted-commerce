@@ -1,0 +1,73 @@
+{
+  "schema_version": 1,
+  "dataset_version": "c5d47a95838c68c6dae1250bf86964ed383ececafae9068538e237a8c69c9532",
+  "dataset_kind": "test_fixtures",
+  "source_reference": "src/olist/fixtures.py",
+  "acquisition": "deterministically generated",
+  "license_reference": "CC0 project fixture",
+  "files": [
+    {
+      "table": "orders",
+      "filename": "olist_orders_dataset.csv",
+      "sha256": "ba59a9547dc5fdb8d8bac7864f243c62bd429bf6155f35612e52ee4918eb968b",
+      "records": 8,
+      "bytes": 813
+    },
+    {
+      "table": "customers",
+      "filename": "olist_customers_dataset.csv",
+      "sha256": "936c38756ae9d03af4f5d4216ebc4fc250d9c8b8b1bc38819c5b647ebe06a981",
+      "records": 3,
+      "bytes": 158
+    },
+    {
+      "table": "order_items",
+      "filename": "olist_order_items_dataset.csv",
+      "sha256": "0555a2570206c2c6436fe49ae5536723b286d3688aecfbc0f39c2ddac7f8ce4b",
+      "records": 7,
+      "bytes": 352
+    },
+    {
+      "table": "sellers",
+      "filename": "olist_sellers_dataset.csv",
+      "sha256": "dd8e3de535a5129553ad4f679ebf5533bd9a5d133ec54a23f669cf74eb57370f",
+      "records": 2,
+      "bytes": 99
+    },
+    {
+      "table": "products",
+      "filename": "olist_products_dataset.csv",
+      "sha256": "ceb25e849eea9e4efff2936aa0d3e330db7bdaa93400d54cdcd7168503d4f9d1",
+      "records": 2,
+      "bytes": 229
+    },
+    {
+      "table": "order_payments",
+      "filename": "olist_order_payments_dataset.csv",
+      "sha256": "7fd209316a1231feeb97d5657ff87c652a436d1d5676d62033068af90431e94a",
+      "records": 3,
+      "bytes": 151
+    },
+    {
+      "table": "order_reviews",
+      "filename": "olist_order_reviews_dataset.csv",
+      "sha256": "53615fbcb6a41500c9cdfcca0b4bc634b4da0ceb385f7a8a4c9df693832e8813",
+      "records": 4,
+      "bytes": 336
+    },
+    {
+      "table": "geolocation",
+      "filename": "olist_geolocation_dataset.csv",
+      "sha256": "2cd0f1f5b2ed0c22a5d9a8e3112ad1bcdbca83a663a8f79966a26b523c2120d8",
+      "records": 2,
+      "bytes": 164
+    },
+    {
+      "table": "category_translation",
+      "filename": "product_category_name_translation.csv",
+      "sha256": "60633ec9134acf2696ad8447850f7e6b6d6ea89dd05fec7b228c21a5ab0c23e8",
+      "records": 2,
+      "bytes": 77
+    }
+  ]
+}

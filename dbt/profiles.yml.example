@@ -1,0 +1,15 @@
+olist_delivery:
+  target: dev
+  outputs:
+    dev:
+      type: snowflake
+      account: "{{ env_var('SNOWFLAKE_ACCOUNT', 'not-configured') }}"
+      user: "{{ env_var('SNOWFLAKE_USER', 'not-configured') }}"
+      password: "{{ env_var('SNOWFLAKE_PASSWORD', 'not-configured') }}"
+      role: "{{ env_var('DBT_SNOWFLAKE_ROLE', 'OLIST_TRANSFORMER') }}"
+      database: "{{ env_var('SNOWFLAKE_DATABASE', 'OLIST_DEMO') }}"
+      warehouse: "{{ env_var('SNOWFLAKE_WAREHOUSE', 'OLIST_DEMO_WH') }}"
+      schema: ANALYTICS
+      threads: 2
+      client_session_keep_alive: false
+      query_tag: olist-dbt

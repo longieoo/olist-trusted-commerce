@@ -1,0 +1,5 @@
+FROM olist-final-runtime:2.0.0
+USER root
+COPY requirements.lock /tmp/olist-requirements.lock
+RUN python3 -m pip install --no-cache-dir -c /tmp/olist-requirements.lock dbt-duckdb==1.9.6 && python3 -m pip check
+ENTRYPOINT ["python3", "scripts/verify_dbt_local.py"]

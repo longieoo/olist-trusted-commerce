@@ -1,0 +1,8 @@
+# Fresh named volumes and no conflicting host ports when used with -p olist-cleancheck.
+services:
+  postgres:
+    ports: !reset []
+  minio:
+    ports: !reset []
+  kafka:
+    ports: !reset []

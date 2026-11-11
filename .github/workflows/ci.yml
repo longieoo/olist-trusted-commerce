@@ -1,0 +1,47 @@
+name: Local pipeline checks
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  unit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: pip install -c requirements.lock '.[test,local]'
+      - run: PYTHONPATH=src pytest -q -m 'not integration' --junitxml=unit-results.xml
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: unit-results
+          path: unit-results.xml
+  integration:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    env:
+      OLIST_CLOUD_AUTHORIZED: '0'
+    steps:
+      - uses: actions/checkout@v4
+      - run: cp .env.example .env
+      - run: docker compose -p olist-ci -f compose.yaml -f infra/compose.clean.yaml build job
+      - run: docker compose -p olist-ci -f compose.yaml -f infra/compose.clean.yaml up -d --wait postgres minio
+      - run: docker compose -p olist-ci -f compose.yaml -f infra/compose.clean.yaml run --rm -e OLIST_CLOUD_AUTHORIZED=0 -e OLIST_EXTRACT_PART_ROWS=2 job smoke
+      - run: docker compose -p olist-ci -f compose.yaml -f infra/compose.clean.yaml run --rm -e OLIST_CLOUD_AUTHORIZED=0 job test --integration
+      - run: docker compose -p olist-ci -f compose.yaml -f infra/compose.clean.yaml run --rm job local-publish --directory data/fixtures --root data/local-fixture --max-reject-rate 1
+      - run: docker compose -p olist-ci -f compose.yaml -f infra/compose.clean.yaml build dbt-check
+      - run: docker compose -p olist-ci -f compose.yaml -f infra/compose.clean.yaml run --rm --no-deps dbt-check --source-root data/local-fixture
+      - run: docker compose -p olist-ci -f compose.yaml -f infra/compose.clean.yaml -f infra/compose.cdc.yaml --profile stream --profile cdc up -d --wait postgres kafka connect
+      - run: docker compose -p olist-ci -f compose.yaml -f infra/compose.clean.yaml -f infra/compose.cdc.yaml run --rm --no-deps job cdc-setup
+      - run: docker compose -p olist-ci -f compose.yaml -f infra/compose.clean.yaml -f infra/compose.cdc.yaml run --rm --no-deps --entrypoint python3 job scripts/verify_cdc.py
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: integration-evidence
+          path: evidence/
+      - if: always()
+        run: docker compose -p olist-ci -f compose.yaml -f infra/compose.clean.yaml -f infra/compose.cdc.yaml --profile stream --profile cdc down

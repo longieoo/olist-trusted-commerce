@@ -1,0 +1,53 @@
+version: 2
+models:
+  - name: fact_orders
+    description: "Grain: một dòng cho mỗi order_id; xem DATA_CONTRACTS.md."
+    columns:
+      - name: order_id
+        tests: [not_null, unique]
+  - name: dim_order_customer
+    description: "Grain: một dòng cho mỗi customer_id; xem DATA_CONTRACTS.md."
+    columns:
+      - name: customer_id
+        tests: [not_null, unique]
+  - name: dim_seller
+    description: "Grain: một dòng cho mỗi seller_id; xem DATA_CONTRACTS.md."
+    columns:
+      - name: seller_id
+        tests: [not_null, unique]
+  - name: dim_product
+    description: "Grain: một dòng cho mỗi product_id; xem DATA_CONTRACTS.md."
+    columns:
+      - name: product_id
+        tests: [not_null, unique]
+  - name: dim_date
+    description: "Grain: một dòng cho mỗi date_day; xem DATA_CONTRACTS.md."
+    columns:
+      - name: date_day
+        tests: [not_null, unique]
+  - name: fact_order_items
+    columns:
+      - name: order_id
+        tests:
+          - not_null
+          - relationships:
+              to: ref('fact_orders')
+              field: order_id
+      - name: seller_id
+        tests:
+          - relationships:
+              to: ref('dim_seller')
+              field: seller_id
+  - name: fact_payments
+    columns:
+      - name: order_id
+        tests:
+          - relationships:
+              to: ref('fact_orders')
+              field: order_id
+  - name: fact_lifecycle_events
+    columns:
+      - name: event_type
+        tests:
+          - accepted_values:
+              values: ['order_created', 'order_approved', 'handed_to_carrier', 'order_delivered']

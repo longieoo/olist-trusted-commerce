@@ -1,0 +1,8 @@
+* text=auto eol=lf
+data/fixtures/*.csv -text
+powerbi/real_exports/*.csv -text
+evidence/*.log -text
+*.png binary
+*.pbix binary
+*.docx binary
+*.parquet binary

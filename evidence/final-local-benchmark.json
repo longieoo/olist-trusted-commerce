@@ -1,0 +1,38 @@
+{
+  "generation": "a77dfc0871f16b95f04ecf22",
+  "status": "passed",
+  "python": "3.12.10",
+  "duckdb": "1.2.2",
+  "rows_in_fact": 98059,
+  "repetitions": 7,
+  "equivalent_results": true,
+  "milliseconds": {
+    "fact_scan": [
+      4.976299998816103,
+      4.8443000014231075,
+      5.240900001808768,
+      5.465300000651041,
+      5.147899999428773,
+      5.6786999994073994,
+      6.4538000005995855
+    ],
+    "daily_mart": [
+      18.268399999215035,
+      16.750700000557117,
+      16.577300000790274,
+      17.539500000566477,
+      17.771999999240506,
+      19.333500000357162,
+      19.05830000032438
+    ]
+  },
+  "median_ms": {
+    "fact_scan": 5.240900001808768,
+    "daily_mart": 17.771999999240506
+  },
+  "queries": {
+    "fact_scan": "SELECT customer_state,count(*) orders,sum(merchandise_brl) merchandise,sum(late_eligible) eligible,sum(coalesce(is_late,0)) late FROM fact_orders WHERE purchase_date BETWEEN DATE '2018-01-01' AND DATE '2018-01-31' GROUP BY customer_state ORDER BY customer_state",
+    "daily_mart": "SELECT customer_state,sum(orders) orders,sum(merchandise_brl) merchandise,sum(eligible_delivered) eligible,sum(late_orders) late FROM mart_delivery_daily WHERE purchase_date BETWEEN DATE '2018-01-01' AND DATE '2018-01-31' GROUP BY customer_state ORDER BY customer_state"
+  },
+  "limits": "Single host, 2 DuckDB threads, warm caches, alternating variants; other services may be running. Measures query execution+fetch only. Not whole-pipeline throughput or scale-out evidence."
+}

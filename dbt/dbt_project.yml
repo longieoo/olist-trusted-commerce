@@ -1,0 +1,11 @@
+name: olist_delivery
+version: 1.0.0
+config-version: 2
+profile: olist_delivery
+model-paths: [models]
+test-paths: [tests]
+models:
+  olist_delivery:
+    +materialized: view
+vars:
+  dataset_version: "{{ env_var('DBT_DATASET_VERSION', 'SET_ME') }}"

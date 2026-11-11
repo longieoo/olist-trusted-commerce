@@ -1,0 +1,28 @@
+version: 2
+sources:
+  - name: olist_raw
+    database: "{{ env_var('SNOWFLAKE_DATABASE', 'OLIST_DEMO') }}"
+    schema: RAW
+    tables:
+      - name: orders
+        identifier: ORDERS
+      - name: customers
+        identifier: CUSTOMERS
+      - name: order_items
+        identifier: ORDER_ITEMS
+      - name: sellers
+        identifier: SELLERS
+      - name: products
+        identifier: PRODUCTS
+      - name: order_payments
+        identifier: ORDER_PAYMENTS
+      - name: order_reviews
+        identifier: ORDER_REVIEWS
+      - name: geolocation
+        identifier: GEOLOCATION
+      - name: category_translation
+        identifier: CATEGORY_TRANSLATION
+      - name: lifecycle_events
+        identifier: LIFECYCLE_EVENTS
+      - name: replay_metrics
+        identifier: REPLAY_METRICS

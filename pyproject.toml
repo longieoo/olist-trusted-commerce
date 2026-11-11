@@ -1,0 +1,24 @@
+[build-system]
+requires = ["setuptools==75.8.2"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "olist-delivery-platform"
+version = "2.0.0"
+requires-python = ">=3.10,<3.13"
+dependencies = ["boto3==1.35.99", "psycopg[binary]==3.2.4", "confluent-kafka==2.8.0", "pyarrow==18.1.0"]
+
+[project.optional-dependencies]
+local = ["duckdb==1.2.2", "streamlit==1.44.1"]
+test = ["pytest==8.3.5", "PyYAML==6.0.2"]
+warehouse = ["snowflake-connector-python==3.13.2", "dbt-snowflake==1.9.2", "dbt-core==1.9.2", "dbt-adapters==1.10.4", "dbt-common==1.15.0"]
+
+[project.scripts]
+olist = "olist.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+markers = ["integration: needs PostgreSQL, MinIO and Spark"]
