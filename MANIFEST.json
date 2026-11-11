@@ -46,48 +46,48 @@
   },
   {
     "path": "data/fixtures/olist_customers_dataset.csv",
-    "bytes": 154,
-    "sha256": "5f7b81035c1547bd2492827a68b4439502fba7503c2aa7158066bd4b3442b80c"
+    "bytes": 158,
+    "sha256": "936c38756ae9d03af4f5d4216ebc4fc250d9c8b8b1bc38819c5b647ebe06a981"
   },
   {
     "path": "data/fixtures/olist_geolocation_dataset.csv",
-    "bytes": 161,
-    "sha256": "ff996f1977748377772f1380d00dc712bc64650628760138619f05170f29adf3"
+    "bytes": 164,
+    "sha256": "2cd0f1f5b2ed0c22a5d9a8e3112ad1bcdbca83a663a8f79966a26b523c2120d8"
   },
   {
     "path": "data/fixtures/olist_order_items_dataset.csv",
-    "bytes": 344,
-    "sha256": "698c56bfe53a839c6b93801c0ea60e4c4098b6ca18ff2f9b62fdd02f83ff5124"
+    "bytes": 352,
+    "sha256": "0555a2570206c2c6436fe49ae5536723b286d3688aecfbc0f39c2ddac7f8ce4b"
   },
   {
     "path": "data/fixtures/olist_order_payments_dataset.csv",
-    "bytes": 147,
-    "sha256": "a466cc9d25288e3cf4cbc87cde0bc18d56afedca1e6972bb1ffa0dadebdcfb2a"
+    "bytes": 151,
+    "sha256": "7fd209316a1231feeb97d5657ff87c652a436d1d5676d62033068af90431e94a"
   },
   {
     "path": "data/fixtures/olist_order_reviews_dataset.csv",
-    "bytes": 331,
-    "sha256": "017692d77e2f22ca43626d91aaa5af0721edf833099e06a22088196926208b9a"
+    "bytes": 337,
+    "sha256": "5067da34c7a8a4ed9dabef4f94e82640c5ebdcc7f01e42b46a9498d12de79b9a"
   },
   {
     "path": "data/fixtures/olist_orders_dataset.csv",
-    "bytes": 804,
-    "sha256": "c58037c006c0130160ff36cacd498f6841e667c72ef1799d398a3210818e651a"
+    "bytes": 813,
+    "sha256": "ba59a9547dc5fdb8d8bac7864f243c62bd429bf6155f35612e52ee4918eb968b"
   },
   {
     "path": "data/fixtures/olist_products_dataset.csv",
-    "bytes": 226,
-    "sha256": "470f974b9f5876caa81a9b96feaf738e5eacbc7a895105a9d506a7c59ed186f3"
+    "bytes": 229,
+    "sha256": "ceb25e849eea9e4efff2936aa0d3e330db7bdaa93400d54cdcd7168503d4f9d1"
   },
   {
     "path": "data/fixtures/olist_sellers_dataset.csv",
-    "bytes": 96,
-    "sha256": "36a6356132ca435f8ed17f646d82354c6bbd113d5f310b3ecbdd942ad5b4e104"
+    "bytes": 99,
+    "sha256": "dd8e3de535a5129553ad4f679ebf5533bd9a5d133ec54a23f669cf74eb57370f"
   },
   {
     "path": "data/fixtures/product_category_name_translation.csv",
-    "bytes": 74,
-    "sha256": "4b939e2d371f414808ac8a3d168793fd5bc7a4b4f20cea57692c77562f3ac607"
+    "bytes": 77,
+    "sha256": "60633ec9134acf2696ad8447850f7e6b6d6ea89dd05fec7b228c21a5ab0c23e8"
   },
   {
     "path": "dbt/dbt_project.yml",
