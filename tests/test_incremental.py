@@ -100,3 +100,29 @@ def test_missing_is_not_zero_and_cohort_maturity(state):
         assert conn.execute('SELECT sum(mature_customers) FROM mart_customer_cohorts WHERE horizon_days=90').fetchone()[0]==0
         lat,lon,observations=conn.execute("SELECT latitude,longitude,observations FROM dim_zip WHERE zip_prefix='00123'").fetchone()
         assert lat==pytest.approx(-23.555) and lon==pytest.approx(-46.635) and observations==2
+
+
+@pytest.mark.parametrize('version',[True,1.0,'1',None])
+def test_change_contract_version_requires_integer(state,version):
+    event=change(state,'order_payments',"order_id='o1' AND payment_sequential=1")
+    event['contract_version']=version
+    with pytest.raises(ValueError,match='contract or namespace'):
+        apply(state,[event])
+
+
+def test_publication_preserves_baseline_and_cdc_provenance(state):
+    first=publish_state(state)
+    assert first['dataset_kind']=='synthetic_corrections_on_test_fixtures'
+    assert first['baseline_dataset_kind']=='test_fixtures'
+    assert first['baseline_source_reference']=='src/olist/fixtures.py'
+    assert 'Synthetic correction' in first['source_reference']
+    (state/'cdc.json').write_text(json.dumps({'namespace':'test'}))
+    # Both the CDC consumer and manual changes-publish use this same function.
+    cdc=publish_state(state)
+    repeated=publish_state(state)
+    assert cdc['dataset_kind']==repeated['dataset_kind']=='synthetic_postgresql_cdc'
+    assert repeated['baseline_dataset_kind']=='test_fixtures'
+    assert repeated['source_reference']=='Synthetic PostgreSQL olist_sim via Debezium'
+    (state/'cdc.json').write_text(json.dumps({'namespace':'other'}))
+    with pytest.raises(ValueError,match='namespace mismatch'):
+        publish_state(state)

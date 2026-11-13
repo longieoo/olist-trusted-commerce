@@ -102,6 +102,10 @@ def normalize(payload, namespace):
     for k,v in row.items():
         if v is not None and (k.endswith(('_date','_timestamp')) or k=='order_approved_at'):
             if type(v)!=int: raise ValueError('Expected Connect millisecond timestamp')
+            # The shared source contract retains timestamps at whole-second precision.
+            # Reject unsupported precision rather than silently changing source values.
+            if v % 1000:
+                raise ValueError('CDC sub-second timestamps are unsupported by the whole-second source contract')
             row[k]=(datetime(1970,1,1)+timedelta(milliseconds=v)).strftime('%Y-%m-%d %H:%M:%S')
     key={k:row[k] for k in KEYS[table]}
     tx=payload.get('transaction')
@@ -162,7 +166,9 @@ def consume(root='data/cdc', seconds=20):
         actual={t:sum(e['table']==t for e in unique.values()) for t in TABLES}
         if actual!=cfg['snapshot_counts']:
             return {'status':'waiting_for_complete_snapshot','captured':captured,'expected':cfg['snapshot_counts'],'actual':actual}
-        reports=[apply(root,sorted(unique.values(),key=lambda e:(TABLES.index(e['table']),e['event_id'])))]
+        # A valid empty baseline has no snapshot mutation batch to apply.
+        reports=([apply(root,sorted(unique.values(),key=lambda e:(TABLES.index(e['table']),e['event_id'])))]
+                 if unique else [])
         complete=[]; applied_ids=set(); begins={}; seen_boundaries=set(); blocked=False
         for _,boundary in sorted(boundaries):
             boundary_key=(boundary['status'],boundary['id'])

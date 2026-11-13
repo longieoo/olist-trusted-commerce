@@ -16,4 +16,5 @@ for group,name,version in artifacts:
 PY
 ENV PYTHONPATH=/app/src:/opt/spark/python:/opt/spark/python/lib/py4j-0.10.9.7-src.zip SPARK_LOCAL_IP=127.0.0.1
 RUN python3 -m pip install --no-cache-dir duckdb==1.2.2 streamlit==1.44.1
+RUN apt-get update && apt-get install -y --no-install-recommends git && rm -rf /var/lib/apt/lists/*
 ENTRYPOINT ["python3", "-m", "olist.cli"]

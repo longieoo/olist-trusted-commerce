@@ -1,5 +1,11 @@
 # Runbook — Olist Trusted Commerce
 
+## Portable entry point (November 2026)
+
+For a clean clone on Windows, Linux or macOS, use Python 3.10–3.12 and Docker Compose v2+: `python scripts/lab.py demo`. This builds MinIO from pinned source, runs the fixture pipeline and starts the fixture-aware dashboard. `python scripts/lab.py verify` runs the full fixture acceptance sequence without historical CSVs; read `evidence/current/ACCEPTANCE.json`. `python scripts/lab.py down` stops the `olist-lab` project and preserves volumes. See [operating boundaries](OPERATIONS.md).
+
+The PowerShell commands below remain available for the historical-data workflow under project `olist-final`. Do not mix the two project names against one checkout at the same time. The CDC contract rejects fractional-second timestamps and strictly requires integer contract versions.
+
 Cập nhật ngày 22/10/2026. Chạy PowerShell tại root olist-final. Docker Desktop Linux containers; internet cho lần build đầu; khoảng 8 GiB RAM Docker. Dữ liệu thật không nằm trong Git: cần 9 CSV và manifest tại data/real.
 
 ## Chuẩn bị một lần

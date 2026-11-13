@@ -40,7 +40,10 @@ services:
       timeout: 3s
       retries: 20
   minio:
-    image: minio/minio:RELEASE.2025-09-07T16-13-09Z
+    image: olist-minio:9e49d5e
+    build:
+      context: .
+      dockerfile: infra/Dockerfile.minio
     command: server /data --console-address :9001
     env_file: .env
     ports: ["127.0.0.1:${MINIO_API_PORT:-9000}:9000", "127.0.0.1:${MINIO_CONSOLE_PORT:-9001}:9001"]

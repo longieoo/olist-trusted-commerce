@@ -10,6 +10,12 @@ dist/
 .venv/
 __pycache__/
 .pytest_cache/
+.pt-*/
+unit-results.xml
+evidence/current/
+evidence/*.json
+evidence/*.xml
+evidence/*.log
 *.egg-info/
 data/real/
 data/runtime/

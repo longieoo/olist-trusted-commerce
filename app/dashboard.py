@@ -27,20 +27,29 @@ def load_generation(root, pointer_bytes):
                 ['fact_order_geography','mart_customer_cohorts','mart_corridors','change_events'] if name in tables}
     return orders, reasons, sellers, receipt, extras
 
-root=Path(os.getenv('OLIST_LOCAL_ROOT','data/local'))
-roots={'Olist lịch sử':root}
-if Path('data/simulation/current.json').exists(): roots['Mô phỏng correction · dữ liệu tách riêng']=Path('data/simulation')
-if Path('data/cdc/current.json').exists(): roots['CDC PostgreSQL · nguồn mô phỏng']=Path('data/cdc')
-root=roots[st.sidebar.selectbox('Nguồn dữ liệu',list(roots))]
-if not (root/'current.json').exists():
-    st.info('Chưa có bản dữ liệu được công bố. Chạy scripts/final.ps1 demo-real để tạo dữ liệu.')
+configured_root=Path(os.getenv('OLIST_LOCAL_ROOT','data/local'))
+configured_label='Olist lịch sử' if configured_root==Path('data/local') else 'Nguồn cấu hình · OLIST_LOCAL_ROOT'
+candidates=[(configured_label,configured_root),
+            ('Fixture tổng hợp · dữ liệu kiểm thử',Path('data/local-fixture')),
+            ('Mô phỏng correction · dữ liệu tách riêng',Path('data/simulation')),
+            ('CDC PostgreSQL · nguồn mô phỏng',Path('data/cdc'))]
+roots={}
+for label,candidate in candidates:
+    if (candidate/'current.json').exists() and candidate.resolve() not in {p.resolve() for p in roots.values()}:
+        roots[label]=candidate
+if not roots:
+    st.info('Chưa có bản dữ liệu được công bố. Chạy scripts/final.ps1 demo-fixture để thử với dữ liệu tổng hợp, hoặc demo-real để dùng Olist lịch sử.')
     st.stop()
+source_label=st.sidebar.selectbox('Nguồn dữ liệu',list(roots))
+root=roots[source_label]
 try:
     all_orders,reasons,bridge,receipt,extras=load_generation(str(root), (root/'current.json').read_bytes())
 except Exception:
     st.error('Không thể xác minh bản dữ liệu. Kiểm tra current.json và checksum; không hiển thị dữ liệu dự phòng.')
     st.stop()
-st.caption(f"Nguồn: {receipt['dataset_kind']} · Khoảng dữ liệu lịch sử {str(all_orders.purchase_date.min())[:10]} → {str(all_orders.purchase_date.max())[:10]} · Công bố {receipt['published_at'][:19]} UTC")
+if receipt['dataset_kind']!='real_olist':
+    st.info('Nguồn tổng hợp để kiểm thử pipeline; không phải dữ liệu giao dịch Olist thực tế.')
+st.caption(f"Nguồn: {receipt['dataset_kind']} · Khoảng dữ liệu {str(all_orders.purchase_date.min())[:10]} → {str(all_orders.purchase_date.max())[:10]} · Công bố {receipt['published_at'][:19]} UTC")
 with st.sidebar:
     st.header('Phạm vi phân tích')
     states=st.multiselect('Bang khách hàng',sorted(all_orders.customer_state.dropna().unique()))

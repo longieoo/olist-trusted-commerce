@@ -1,19 +1,24 @@
-name: Local pipeline checks
+name: Pipeline checks
 on:
   push:
   pull_request:
   workflow_dispatch:
 permissions:
   contents: read
+concurrency:
+  group: pipeline-${{ github.ref }}
+  cancel-in-progress: true
 jobs:
   unit:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
       - run: pip install -c requirements.lock '.[test,local]'
+      - run: python scripts/check_release.py
       - run: PYTHONPATH=src pytest -q -m 'not integration' --junitxml=unit-results.xml
       - uses: actions/upload-artifact@v4
         if: always()
@@ -22,26 +27,30 @@ jobs:
           path: unit-results.xml
   integration:
     runs-on: ubuntu-latest
-    timeout-minutes: 25
+    timeout-minutes: 45
     env:
       OLIST_CLOUD_AUTHORIZED: '0'
     steps:
       - uses: actions/checkout@v4
-      - run: cp .env.example .env
-      - run: docker compose -p olist-ci -f compose.yaml -f infra/compose.clean.yaml build job
-      - run: docker compose -p olist-ci -f compose.yaml -f infra/compose.clean.yaml up -d --wait postgres minio
-      - run: docker compose -p olist-ci -f compose.yaml -f infra/compose.clean.yaml run --rm -e OLIST_CLOUD_AUTHORIZED=0 -e OLIST_EXTRACT_PART_ROWS=2 job smoke
-      - run: docker compose -p olist-ci -f compose.yaml -f infra/compose.clean.yaml run --rm -e OLIST_CLOUD_AUTHORIZED=0 job test --integration
-      - run: docker compose -p olist-ci -f compose.yaml -f infra/compose.clean.yaml run --rm job local-publish --directory data/fixtures --root data/local-fixture --max-reject-rate 1
-      - run: docker compose -p olist-ci -f compose.yaml -f infra/compose.clean.yaml build dbt-check
-      - run: docker compose -p olist-ci -f compose.yaml -f infra/compose.clean.yaml run --rm --no-deps dbt-check --source-root data/local-fixture
-      - run: docker compose -p olist-ci -f compose.yaml -f infra/compose.clean.yaml -f infra/compose.cdc.yaml --profile stream --profile cdc up -d --wait postgres kafka connect
-      - run: docker compose -p olist-ci -f compose.yaml -f infra/compose.clean.yaml -f infra/compose.cdc.yaml run --rm --no-deps job cdc-setup
-      - run: docker compose -p olist-ci -f compose.yaml -f infra/compose.clean.yaml -f infra/compose.cdc.yaml run --rm --no-deps --entrypoint python3 job scripts/verify_cdc.py
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Full fixture acceptance on a clean runner
+        run: python scripts/lab.py verify --project olist-ci
+      - name: Service logs on failure
+        if: failure()
+        run: docker compose -p olist-ci -f compose.yaml -f infra/compose.clean.yaml -f infra/compose.cdc.yaml --profile '*' logs --no-color --tail=100 > evidence/current/service-failure.log
       - uses: actions/upload-artifact@v4
         if: always()
         with:
           name: integration-evidence
-          path: evidence/
+          path: |
+            evidence/current/
+            evidence/tests.xml
+            evidence/integration-tests.xml
+            evidence/tests.receipt.json
+            evidence/integration-tests.receipt.json
+            evidence/upgrade-dbt.json
+            evidence/upgrade-cdc.json
       - if: always()
-        run: docker compose -p olist-ci -f compose.yaml -f infra/compose.clean.yaml -f infra/compose.cdc.yaml --profile stream --profile cdc down
+        run: python scripts/lab.py down --project olist-ci

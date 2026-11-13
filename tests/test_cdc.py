@@ -29,6 +29,41 @@ def test_cdc_fails_closed(kind):
     with pytest.raises(ValueError):normalize(payload,'test')
 
 
+def test_cdc_timestamp_precision_never_silently_truncates():
+    from olist.contracts import HEADERS
+    row={c:None for c in HEADERS['orders']}
+    row.update(order_id='o',customer_id='c',order_status='created',
+               order_purchase_timestamp=1514764800000)
+    payload=envelope()
+    payload['source']['table']='orders'
+    payload['after']=row
+    assert normalize(payload,'test')['after']['order_purchase_timestamp']=='2018-01-01 00:00:00'
+    payload['after']['order_purchase_timestamp']+=123
+    with pytest.raises(ValueError,match='sub-second'):
+        normalize(payload,'test')
+
+
+def test_empty_snapshot_does_not_create_an_empty_change_batch(tmp_path,monkeypatch):
+    import json
+    import confluent_kafka
+    import olist.cdc as cdc
+    class OfflineConsumer:
+        def __init__(self,*args,**kwargs): pass
+        def subscribe(self,*args): pass
+        def close(self): pass
+    monkeypatch.setattr(confluent_kafka,'Consumer',OfflineConsumer)
+    def reject_empty_batch(*args,**kwargs):
+        pytest.fail('An empty snapshot must not be submitted to the change engine')
+    monkeypatch.setattr(cdc,'apply',reject_empty_batch)
+    monkeypatch.setattr(cdc,'publish_state',lambda root:{'generation':'empty-baseline'})
+    (tmp_path/'cdc.json').write_text(json.dumps({'namespace':'test',
+        'snapshot_counts':{t:0 for t in cdc.TABLES}}))
+    result=cdc.consume(tmp_path,seconds=0)
+    assert result['status']=='passed'
+    assert result['snapshot_records']==result['pending_transactions']==0
+    assert result['batches']==[] and result['generation']=='empty-baseline'
+
+
 @pytest.mark.parametrize('include_begin',[False,True])
 def test_end_without_all_rows_never_claims_caught_up(state,monkeypatch,include_begin):
     import json

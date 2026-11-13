@@ -20,7 +20,7 @@ function Initialize-Local {
 }
 Initialize-Local
 switch ($Action) {
-    'setup' { Invoke-Docker build job; Invoke-Docker up -d --wait postgres minio }
+    'setup' { Invoke-Docker build job minio; Invoke-Docker up -d --wait postgres minio }
     'demo-fixture' {
         Invoke-Docker up -d --wait postgres minio
         Invoke-Docker run --rm job smoke

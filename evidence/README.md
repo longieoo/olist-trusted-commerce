@@ -1,4 +1,5 @@
-# Validation records
+# Verification evidence
 
+`archive/2026-10/` preserves dated results from the earlier historical-data checkout. These do not certify later code revisions.
 
-Public release note (2026-11-11): reports in evidence/ record the October local checkout. Runtime databases and source CSVs are intentionally omitted; do not use an archived passed flag as proof of a fresh clone run. This release reran 59 unit tests successfully; 4 service integration tests were not rerun during packaging. Regenerate runtime receipts with the runbook before using verify_upgrade.py.
+Fresh runs write `current/ACCEPTANCE.json`, `current/fixture.json` and runtime test/dbt/CDC reports. They are generated, not committed. GitHub Actions uploads the fresh reports as artifacts. A failed verification overwrites an earlier green status. Use the report timestamp, source hashes and publication identity together.

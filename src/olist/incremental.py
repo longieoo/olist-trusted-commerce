@@ -83,7 +83,9 @@ def initialize(source_root, root, namespace):
 def validate(event, namespace):
     from .batch import row_reason
     required={'event_id','namespace','contract_version','table','op','key','position','after'}
-    if set(event)!=required or event['contract_version']!=CONTRACT or event['namespace']!=namespace:
+    if (not isinstance(event,dict) or set(event)!=required
+            or type(event['contract_version']) is not int
+            or event['contract_version']!=CONTRACT or event['namespace']!=namespace):
         raise ValueError('Change contract or namespace mismatch')
     table=event['table']
     if table not in TABLES or event['op'] not in ('upsert','delete'):
@@ -230,6 +232,14 @@ def publish_state(root, fail=None):
             last=conn.execute('SELECT batch_id FROM change_batches ORDER BY rowid DESC LIMIT 1').fetchone()
             conn.execute('CHECKPOINT')
         baseline=json.loads((root/'baseline.json').read_text())
+        binding=json.loads((root/'binding.json').read_text())
+        cdc_metadata=root/'cdc.json'
+        is_cdc=cdc_metadata.exists()
+        if is_cdc and json.loads(cdc_metadata.read_text())['namespace']!=binding['namespace']:
+            raise ValueError('CDC publication namespace mismatch')
+        kind=('synthetic_postgresql_cdc' if is_cdc else
+              'synthetic_corrections_on_olist' if baseline['dataset_kind']=='real_olist' else
+              'synthetic_corrections_on_'+baseline['dataset_kind'])
         sha=hash_file(root/'working.duckdb'); generation=sha[:24]
         target=root/(generation+'.duckdb')
         if not target.exists():
@@ -238,7 +248,11 @@ def publish_state(root, fail=None):
             os.replace(tmp,target)
         elif hash_file(target)!=sha: raise ValueError('Existing publication corrupted')
         receipt={**baseline,'generation':generation,'database':target.name,'database_sha256':sha,
-                 'dataset_kind':'synthetic_corrections_on_olist','published_at':utc_now(),
+                 'dataset_kind':kind,'published_at':utc_now(),
+                 'baseline_dataset_kind':baseline['dataset_kind'],
+                 'baseline_source_reference':baseline.get('source_reference'),
+                 'source_reference':('Synthetic PostgreSQL olist_sim via Debezium' if is_cdc else
+                                     'Synthetic correction events over an immutable baseline'),
                  'checks':checks,'decimal_oracle':oracle,'last_change_batch':last[0] if last else None,
                  'baseline_generation':baseline['generation'],'mode':'incremental simulation; immutable full-file publication',
                  'quality_scope':'Baseline ingestion accounting; changes are fail-closed transactional batches'}
