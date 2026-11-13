@@ -68,6 +68,8 @@ See the [runbook](docs/FINAL_RUNBOOK.md) for restart and recovery. The portable 
 
 ## Tests and recorded results
 
+The [November acceptance](docs/RELEASE_NOTES.md) passed locally and on GitHub Actions: 87 unit/dashboard tests, 4 integration tests, 17 dbt models with 2 data tests, and synthetic CDC outage/replay checks. See the linked run for inspectable hosted results and artifacts.
+
 ```sh
 python scripts/check_release.py
 python scripts/lab.py verify
