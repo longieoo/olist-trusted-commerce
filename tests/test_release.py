@@ -9,7 +9,7 @@ from zipfile import ZipFile
 import pytest
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / 'scripts'))
-from check_release import public_path, scan_files, validate_fixtures
+from check_release import check, public_path, scan_files, validate_fixtures
 from package_final import package, verify_archive
 
 
@@ -80,3 +80,13 @@ def test_archive_verification_detects_changed_content(tmp_path):
             target.writestr(name, b'# Changed\n' if name.endswith('/README.md') else source.read(name))
     with pytest.raises(ValueError, match='Archive hash mismatch'):
         verify_archive(forged)
+
+
+def test_source_ci_rejects_forcibly_tracked_env_without_echoing_value(tmp_path):
+    subprocess.run(['git', 'init', '-q', str(tmp_path)], check=True)
+    secret = 'private-local-password'
+    (tmp_path/'.env').write_text('PASSWORD=' + secret)
+    subprocess.run(['git', '-C', str(tmp_path), 'add', '.env'], check=True)
+    with pytest.raises(ValueError, match='Forbidden tracked release paths') as result:
+        check(tmp_path)
+    assert secret not in str(result.value)

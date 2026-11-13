@@ -33,3 +33,15 @@ def test_preflight_failure_invalidates_previous_green_report(tmp_path, monkeypat
     with pytest.raises(subprocess.CalledProcessError):
         lab.main()
     assert json.loads(report.read_text())['status'] == 'failed'
+
+
+def test_env_initialization_failure_invalidates_previous_green_report(tmp_path, monkeypatch):
+    report = tmp_path/'evidence/current/ACCEPTANCE.json'
+    report.parent.mkdir(parents=True)
+    report.write_text(json.dumps({'status': 'passed'}))
+    monkeypatch.setattr(lab, 'ROOT', tmp_path)
+    monkeypatch.setattr('sys.argv', ['lab.py', 'verify'])
+    monkeypatch.chdir(tmp_path)
+    with pytest.raises(FileNotFoundError):
+        lab.main()
+    assert json.loads(report.read_text())['status'] == 'failed'

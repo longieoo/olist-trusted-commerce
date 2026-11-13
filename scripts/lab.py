@@ -46,12 +46,12 @@ def main():
     args = parser.parse_args()
     os.chdir(ROOT)
     dc = compose(args.project)
-    initialize_env()
     steps = []
     started = datetime.now(timezone.utc).isoformat()
     report_path = ROOT / 'evidence/current/ACCEPTANCE.json'
     if args.action == 'verify':
         # Never leave an earlier green report in place during a failed run.
+        report_path.parent.mkdir(parents=True, exist_ok=True)
         report_path.write_text(json.dumps({'status': 'running', 'started_at': started}), encoding='utf-8')
 
     def run(label, *cmd):
@@ -60,6 +60,7 @@ def main():
         steps.append(label)
 
     try:
+        initialize_env(ROOT)
         subprocess.run(['docker', 'info', '--format', '{{.ServerVersion}}'], check=True)
         subprocess.run(['docker', 'compose', 'version'], check=True)
         before = source_hashes() if args.action == 'verify' else None

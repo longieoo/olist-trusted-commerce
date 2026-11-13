@@ -92,6 +92,10 @@ def validate_fixtures(root):
 
 def check(root):
     root = Path(root).resolve()
+    tracked = subprocess.check_output(['git', '-C', str(root), 'ls-files', '-z']).decode('utf-8').split('\0')
+    forbidden = [name for name in tracked if name and not public_path(name)]
+    if forbidden:
+        raise ValueError('Forbidden tracked release paths: ' + ', '.join(forbidden))
     files = release_files(root, include_untracked=True)
     scan_files(root, files)
     python_files = [p for p in files if p.suffix == '.py']

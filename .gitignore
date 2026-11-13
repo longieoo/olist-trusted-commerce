@@ -13,6 +13,7 @@ __pycache__/
 .pt-*/
 unit-results.xml
 evidence/current/
+evidence/runs/
 evidence/*.json
 evidence/*.xml
 evidence/*.log
