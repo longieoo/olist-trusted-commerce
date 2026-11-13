@@ -6,6 +6,10 @@ A local data platform for reconciling e-commerce orders, payments and delivery m
 
 The main engineering question is simple: when a payment changes, an item is deleted, or a process crashes, can the published numbers still be traced back to the source?
 
+![Fixture dashboard with source labels and delivery metrics](docs/images/dashboard.png)
+
+The quick-start dashboard above uses five synthetic orders. Historical Olist analytics are a separate source.
+
 ## Data flow
 
 ```mermaid
